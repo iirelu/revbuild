@@ -78,18 +78,30 @@ coords = {
   "987" => "The Broken Clock Room",
   "992" => "The Excavation Site"
 }
+# up there's the huge list of coordinates we're building the table for
+# should probably keep that up to date
 
-responses = {}
-revs = {}
+responses = {} # where all the async io thingies go
+revs = {} # where all the actual rev sizes go
 
-coords.each do |coord,name|
+coords.each do |coord, name|
+  # we're using curl and telling it to specifically
+  # only grab the 4th to 8th bytes of the location we want
   responses[coord] = IO.popen("curl http://www.mateuszskutnik.com/submachine/subnet_data/#{coord}.swf -sr 4-8")
 end
 
 responses.each do |coord, response|
+  # this is where the async-ness comes in, cause
+  # what we did before was just queue up everything, so
+  # what we do here is read all of them, so as we're waiting
+  # for one thing, everything else is still chugging along
+
+  # also the .unpack("L<") thing is just saying that its
+  # little-endian and 4 bytes long, which it is
   revs[coord] = response.readlines[0].unpack("L<")[0]
 end
 
+# starting the mediawiki table off
 output = '{| class="article-table sortable"
 !Name
 !data-sort-type="text"|Coords
@@ -97,13 +109,16 @@ output = '{| class="article-table sortable"
 |-
 '
 
-coords.each do |coord,name|
+coords.each do |coord, name|
   output += "|[[#{name}]]\n"
   output += "|#{coord}\n"
   output += "|#{revs[coord]}\n"
   output += "|-\n"
 end
 
+# ending the table
 output += "|}"
 
+# spitting everything out. you'll probably want to pipe the
+# output of revbuild into xclip or something
 puts output
