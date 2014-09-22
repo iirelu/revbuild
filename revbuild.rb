@@ -2,11 +2,6 @@
 
 require_relative 'coords.rb'
 
-def revget(coord)
-  #`curl http://www.mateuszskutnik.com/submachine/subnet_data/#{coord}.swf -sr 4-8`.unpack("L<")[0]
-  123
-end
-
 responses = {}
 revs = {}
 
